@@ -668,7 +668,7 @@ stretchMeshDeformer::deform( MDataBlock& block,
 	MArrayDataHandle cAVrtMultListHndl = block.inputArrayValue(crvAttractorVrtMultList, &stat);
 	if(!stat){stat.perror("attrctrVrtMultList handle construction failed\n");}
 
-	MArrayDataHandle cAttachUVListHndl = block.inputArrayValue(crvAttractorAttachUV, &stat);
+	MArrayDataHandle cAttachUVListHndl = block.inputArrayValue(crvAttractorAttachUVList, &stat);
 	if(!stat){stat.perror("crvAttractorAttachUV handle construction failed\n");}
 
 	MArrayDataHandle mColliderArrayHandle = block.inputArrayValue(mshCollider, &stat);
