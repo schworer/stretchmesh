@@ -28,6 +28,8 @@ class MFnPlugin;
 		return MS::kFailure;		\
 	}
 
+typedef unsigned int uint;
+
 class stretchMeshDeformer : public MPxDeformerNode
 {
 public:
