@@ -16,6 +16,8 @@ class MFnPlugin;
 #include <maya/MIOStream.h>
 #include <maya/MPxLocatorNode.h> 
 
+typedef unsigned int uint;
+
 class curveColliderLocator : public MPxLocatorNode
 	{
 	public:
