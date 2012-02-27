@@ -34,8 +34,8 @@
 #include <maya/MCursor.h>
 #include <maya/MMatrix.h>
 
-#include "../ksUtils/ksUtils.h"
-#include "../ksUtils/IncludeMFnPluginClass.h"
+#include "ksUtils.h"
+#include "IncludeMFnPluginClass.h"
 
 using namespace std;
 

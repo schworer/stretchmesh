@@ -166,7 +166,7 @@ void curveColliderLocator::draw(M3dView &view, const MDagPath &path,
 		}
 	
 		if(numStacks>1){
-			for(uint crvItr = 0; crvItr < numStacks - 1; crvItr++){
+			for(int crvItr = 0; crvItr < (numStacks - 1); crvItr++){
 				
 				param = (float(crvItr)/float(numStacks-1))*numSpans;
 				param2 = (float(crvItr+1)/float(numStacks-1))*numSpans;
@@ -296,7 +296,7 @@ void curveColliderLocator::draw(M3dView &view, const MDagPath &path,
 			radiusPts[radiusItr] = radiusPt;
 		}
 		
-		for(uint crvItr = 0; crvItr < numStacks; crvItr++){
+		for(int crvItr = 0; crvItr < numStacks; crvItr++){
 			
 			param = (float(crvItr)/float(numStacks))*numSpans;
 			param2 = (float(crvItr+1)/float(numStacks))*numSpans;
