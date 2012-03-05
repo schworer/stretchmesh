@@ -1973,12 +1973,10 @@ stretchMeshDeformer::deform( MDataBlock& block,
 		}
 		pt *= inMatrix.inverse(); //Put point in object space
 		resultPts[iter.index()] = pt;
-		//------------------------ Maya 2008 -------------------------
-		iter.setPosition(pt, MSpace::kObject);
 	}
 	
 	//------------------------ Maya 2009+ -------------------------
-//	iter.setAllPositions(resultPts, MSpace::kObject);
+	iter.setAllPositions(resultPts, MSpace::kObject);
 
 	return status;
 }
