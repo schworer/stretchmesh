@@ -65,9 +65,9 @@ public:
 	static MObject		collisions;		// whether or not to evaluate collision objects
 	static MObject		meanWeightsList;
 	static MObject		meanWeights;
-	static MObject		connVrtIdList;	
+	static MObject		connVrtIdList;
 	static MObject		connVrtId;
-	static MObject		connVrtIdNrmlOrderList;	
+	static MObject		connVrtIdNrmlOrderList;
 	static MObject		connVrtIdNrmlOrder;
 	static MObject		enableScaleSafe;
 	static MObject		b;

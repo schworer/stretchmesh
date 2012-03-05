@@ -54,14 +54,14 @@ MTypeId     stretchMeshDeformer::id( 0x00113000 );
 MObject     stretchMeshDeformer::stretchMeshVersion;
 MObject     stretchMeshDeformer::collisionStep;
 MObject     stretchMeshDeformer::iterations;
-MObject	  stretchMeshDeformer::collisions;
+MObject     stretchMeshDeformer::collisions;
 MObject     stretchMeshDeformer::meanWeightsList;
 MObject     stretchMeshDeformer::meanWeights;
 MObject     stretchMeshDeformer::connVrtIdList;
 MObject     stretchMeshDeformer::connVrtId;
 MObject     stretchMeshDeformer::connVrtIdNrmlOrderList;
 MObject     stretchMeshDeformer::connVrtIdNrmlOrder;
-MObject	  stretchMeshDeformer::enableScaleSafe;
+MObject     stretchMeshDeformer::enableScaleSafe;
 MObject     stretchMeshDeformer::b;
 MObject     stretchMeshDeformer::bScalableList;
 MObject     stretchMeshDeformer::bScalable;
@@ -75,33 +75,33 @@ MObject     stretchMeshDeformer::attrPaintWeights;
 MObject     stretchMeshDeformer::attrPaintTrans;
 MObject     stretchMeshDeformer::attrPaintArrDirty;
 // curve attractors
-MObject		stretchMeshDeformer::crvAttractorCurve;
-MObject		stretchMeshDeformer::crvAttractorStrength;
-MObject		stretchMeshDeformer::crvAttractorVrtMultList;
-MObject		stretchMeshDeformer::crvAttractorVrtMult;
-MObject		stretchMeshDeformer::crvAttractorAttachUVList;
-MObject		stretchMeshDeformer::crvAttractorAttachUV;
+MObject     stretchMeshDeformer::crvAttractorCurve;
+MObject     stretchMeshDeformer::crvAttractorStrength;
+MObject     stretchMeshDeformer::crvAttractorVrtMultList;
+MObject     stretchMeshDeformer::crvAttractorVrtMult;
+MObject     stretchMeshDeformer::crvAttractorAttachUVList;
+MObject     stretchMeshDeformer::crvAttractorAttachUV;
 // end curve attractors
 MObject     stretchMeshDeformer::mshCollider;
 MObject     stretchMeshDeformer::mshColliderPad;
 MObject     stretchMeshDeformer::mshColliderInflated;
 MObject     stretchMeshDeformer::mshColliderMult;
-MObject	  stretchMeshDeformer::mshColliderVrtMultList;
-MObject	  stretchMeshDeformer::mshColliderVrtMult;
+MObject     stretchMeshDeformer::mshColliderVrtMultList;
+MObject     stretchMeshDeformer::mshColliderVrtMult;
 MObject     stretchMeshDeformer::nrbsCollider;
 MObject     stretchMeshDeformer::primSphrColliderList;
 MObject     stretchMeshDeformer::primSphrColliderMult;
-MObject	  stretchMeshDeformer::primSphrColliderVrtMultList;
-MObject	  stretchMeshDeformer::primSphrColliderVrtMult;
+MObject     stretchMeshDeformer::primSphrColliderVrtMultList;
+MObject     stretchMeshDeformer::primSphrColliderVrtMult;
 MObject     stretchMeshDeformer::primCrvColliderList;
 MObject     stretchMeshDeformer::primCrvColliderMult;
-MObject	  stretchMeshDeformer::crvColliderVrtMultList;
-MObject	  stretchMeshDeformer::crvColliderVrtMult;
-MObject	  stretchMeshDeformer::crvColliderRadiusList;
-MObject	  stretchMeshDeformer::crvColliderRadius;
+MObject     stretchMeshDeformer::crvColliderVrtMultList;
+MObject     stretchMeshDeformer::crvColliderVrtMult;
+MObject     stretchMeshDeformer::crvColliderRadiusList;
+MObject     stretchMeshDeformer::crvColliderRadius;
 
-bool		stretchMeshDeformer::Registered = false;
-bool		stretchMeshDeformer::Licensed = false;
+bool        stretchMeshDeformer::Registered = false;
+bool        stretchMeshDeformer::Licensed = false;
 
 using namespace std;
 
@@ -168,7 +168,7 @@ MStatus stretchMeshDeformer::initialize()
 	MFnNumericAttribute nAttr;
 	MFnMatrixAttribute mAttr;
 	MFnCompoundAttribute cmpAttr;
-	MFnUnitAttribute unitFn;    
+	MFnUnitAttribute unitFn;
 	MFnTypedAttribute typedAttr;
 	MFnNumericAttribute stfAttr;
 
@@ -661,10 +661,10 @@ stretchMeshDeformer::deform( MDataBlock& block,
 
 	MArrayDataHandle attrctrCrvsHndl = block.inputValue(crvAttractorCurve, &stat);
 	if(!stat){stat.perror("attrctrCrvsHndl handle construction failed\n");}
-	
+
 	MArrayDataHandle crvAttrctrStrengthsHndl = block.inputValue(crvAttractorStrength, &stat);
 	if(!stat){stat.perror("crvAttrctrStrengthsHndl handle construction failed\n");}
-	
+
 	MArrayDataHandle cAVrtMultListHndl = block.inputArrayValue(crvAttractorVrtMultList, &stat);
 	if(!stat){stat.perror("attrctrVrtMultList handle construction failed\n");}
 
@@ -713,10 +713,12 @@ stretchMeshDeformer::deform( MDataBlock& block,
 	// determine the envelope (this is a global scale factor)
 	//
 	MDataHandle envData = block.inputValue(envelope,&status);
-	McheckErr(status, "Error getting envelope data handle\n");	
-	double envelope = envData.asFloat();	
-	if(envelope == 0.0){return MS::kSuccess;}
-	MPlug colliderDestPlugArray(thisNode, mshCollider); 
+	McheckErr(status, "Error getting envelope data handle\n");
+	double envelope = envData.asFloat();
+	if (envelope == 0.0) {
+		return MS::kSuccess;
+	}
+	MPlug colliderDestPlugArray(thisNode, mshCollider);
 	MPlug attractorStrengthPlugArray(thisNode, attrctrStrength);
 	MPlug crvAttractorStrengthPlugArray(thisNode, crvAttractorStrength);
 	MDataHandle cAttractorHandle;
@@ -747,10 +749,10 @@ stretchMeshDeformer::deform( MDataBlock& block,
 	MDataHandle mColliderHandle;
 	MObject mColliderObj;
 	MFnMesh mColliderFn;
-	MPlug mshColliderMultPlugArray(thisNode, mshColliderMult);	
+	MPlug mshColliderMultPlugArray(thisNode, mshColliderMult);
 	// SPhere colliders
-	MPlug sphereColliderDestPlugArray(thisNode, primSphrColliderList ); 
-	MPlug sphereColliderMultPlugArray(thisNode, primSphrColliderMult);	
+	MPlug sphereColliderDestPlugArray(thisNode, primSphrColliderList );
+	MPlug sphereColliderMultPlugArray(thisNode, primSphrColliderMult);
 	MBoundingBox inMeshBoundBox;
 	MVector searchVector;
 	MIntArray connected_vrts;
@@ -771,7 +773,7 @@ stretchMeshDeformer::deform( MDataBlock& block,
 	bool wasExactHit;
 	unsigned int numHits;
 	MPoint closestPoint;
-	MFloatPoint raySource; 
+	MFloatPoint raySource;
 	MVector rayDirVec;
 	MFloatVector rayDir;
 	MMeshIsectAccelParams intersectAccel;
@@ -1445,7 +1447,7 @@ stretchMeshDeformer::deform( MDataBlock& block,
 			currNrml.x = 0.0;
 			currNrml.y = 0.0;
 			currNrml.z = 0.0;
-			for(j=0; j < numConnVrts; j++){
+			for(j=0; j < numConnVrts; j++) {
 				// Changes to the deformer were made in order to fix degenerate vertices in certain cases.  
 				// Because of this change, we now have to maintain code to compute "legacy" SM nodes (those
 				// created before vers SM_POLAR_FIX
@@ -1968,7 +1970,7 @@ stretchMeshDeformer::deform( MDataBlock& block,
 			pt.x = inputPts[iter.index()].x + inputToResult.x;
 			pt.y = inputPts[iter.index()].y + inputToResult.y;
 			pt.z = inputPts[iter.index()].z + inputToResult.z;
-		}else{
+		} else {
 			pt = resultPts[iter.index()];
 		}
 		pt *= inMatrix.inverse(); //Put point in object space
@@ -1989,10 +1991,9 @@ MStatus stretchMeshDeformer::Register(MFnPlugin& ioPlugin, bool pLicensed)
 	MStatus status = ioPlugin.registerNode(MAYA_stretchMeshDEFORMER_NAME, id, &creator,
 		&initialize, MPxNode::kDeformerNode );
 
-	if (MFAIL(status)) 
+	if (MFAIL(status)){
 		return MReturnStatus(status, "Failed to register " MAYA_stretchMeshDEFORMER_NAME " deformer");
-	else
-	{
+	} else {
 		Registered = true;
 		Licensed = pLicensed;
 	}
@@ -2007,10 +2008,9 @@ MStatus stretchMeshDeformer::Deregister(MFnPlugin& ioPlugin)
 {
 	MStatus status = ioPlugin.deregisterNode(id);
 
-	if (MFAIL(status)) 
+	if (MFAIL(status)) {
 		return MReturnStatus(status, "Failed to deregister " MAYA_stretchMeshDEFORMER_NAME " deformer");
-	else
-	{
+	} else {
 		Registered = false;
 		Licensed = false;
 	}
@@ -2097,9 +2097,9 @@ void stretchMeshDeformer::sAttrChangedCallback(MNodeMessage::AttributeMessage in
 //
 void stretchMeshDeformer::AttrChangedCallback(MNodeMessage::AttributeMessage inMsg, MPlug& ioPlug, MPlug& ioOtherPlug)
 {
-	if (inMsg & MNodeMessage::kAttributeSet) 
+	if (inMsg & MNodeMessage::kAttributeSet)
 	{
-		if (ioPlug==stretchMeshDeformer::attrPaintWeights)
+		if (ioPlug == stretchMeshDeformer::attrPaintWeights)
 		{
 			// Get "paintTrans" plug
 			MObject thisMObj = thisMObject();
