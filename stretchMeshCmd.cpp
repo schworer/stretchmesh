@@ -77,6 +77,7 @@ MSyntax stretchMeshCmd::newSyntax()
 	syntax.addFlag(kAddCurveColliderFlag, kAddCurveColliderFlagLong, MSyntax::kString);
 	syntax.addFlag(kAddSphereColliderFlag, kAddSphereColliderFlagLong, MSyntax::kString);
 	syntax.addFlag(kAddAttractorFlag, kAddAttractorFlagLong, MSyntax::kString);
+	syntax.addFlag(kAddKeyPoseFlag, kAddKeyPoseFlagLong, MSyntax::kString);
 	syntax.addFlag(kAddCurveAttractorFlag, kAddCurveAttractorFlagLong, MSyntax::kString);
 	syntax.addFlag(kScaleSafeFlag, kScaleSafeFlagLong, MSyntax::kBoolean);
 	syntax.addFlag(kExtendConnectedVertsFlag, kExtendConnectedVertsFlagLong, MSyntax::kBoolean);
@@ -130,6 +131,7 @@ MStatus stretchMeshCmd::parseArgs(const MArgList &args)
 	scaleSafeFlagSet = false;
 	extendConnectedVertsFlagSet = false;
 	
+	addKeyPoseFlagSet = false;
 
 	if (argData.isEdit()) { isEditMode = true; }
 		
@@ -254,6 +256,17 @@ MStatus stretchMeshCmd::parseArgs(const MArgList &args)
 		extendConnectedVertsFlagSet = true;
 	}else{ extendConnectedVertsFlag = EXTEND_CONN_VRTS_DFLT; }
 	
+	if (argData.isFlagSet(kAddKeyPoseFlag)) {
+		MString tmp;
+		status = argData.getFlagArgument(kAddKeyPoseFlag, 0, tmp);
+		if (!status) {
+			status.perror("Add key pose flag flag parsing failed");
+			return status;
+		}
+		addKeyPoseFlag = tmp;
+		addKeyPoseFlagSet = true;
+	}
+
 	argData.getObjects(argObjects);
 	if(argObjects.length() == 0){
 		MGlobal::displayError( "No deformable objects selected." );
@@ -440,6 +453,10 @@ MStatus stretchMeshCmd::redoIt()
 		
 		if(addAttractorFlagSet){
 			addAttractor();
+		}
+
+		if(addKeyPoseFlagSet){
+			addKeyPose();
 		}
 
 		if(addCurveAttractorFlagSet){
@@ -828,6 +845,10 @@ MStatus stretchMeshCmd::undoIt()
 		}
 		
 		if(addAttractorFlagSet){
+			dgModifier.undoIt();
+		}
+
+		if(addKeyPoseFlagSet){
 			dgModifier.undoIt();
 		}
 
@@ -1288,7 +1309,34 @@ bool stretchMeshCmd::addSphereCollider()
 	return true;
 }
 
+bool stretchMeshCmd::addKeyPose()
+{
+	// adds a key pose to the current stretch mesh.
+	// Key Poses are defined as arbitrary geometric variations that are blended
+	// together with the initial state of the stretchmesh data -- must be
+	// topologically consistent
 
+	MCommandResult cmdResult;
+	int exists;
+	MGlobal::executeCommand("objExists " + addKeyPoseFlag, cmdResult);
+	cmdResult.getResult(exists);
+
+	if (!exists) {
+		MGlobal::displayError("Given Key pose node does not exist");
+		return false;
+	}
+
+	MSelectionList selList;
+	selList.clear();
+	selList.add(addKeyPoseFlag);
+
+	MDagPath keyPosePath;
+	selList.getDagPath(0, keyPosePath);
+	MFnDependencyNode keyPoseDepNode;
+	keyPoseDepNode.setObject(keyPosePath.node());
+
+	return true;
+}
 
 bool stretchMeshCmd::addAttractor()
 {

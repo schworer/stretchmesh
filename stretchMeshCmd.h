@@ -50,11 +50,15 @@ class MFnPlugin;
 #define kExtendConnectedVertsFlag	"-ecv"
 #define kExtendConnectedVertsFlagLong	"-enableExtendConnectedVerts"
 
+// key pose flags
+#define kAddKeyPoseFlag "-akp"
+#define kAddKeyPoseFlagLong "-addKeyPose"
+
 class stretchMeshCmd : public MPxCommand
 {
 public:
 					stretchMeshCmd() {};
-	virtual			~stretchMeshCmd(); 
+	virtual			~stretchMeshCmd();
 
 	static bool		Registered;
 	static MStatus	Register(MFnPlugin& ioPlugin);
@@ -89,6 +93,10 @@ private:
 	bool addAttractorFlagSet;
 	MString addCurveAttractorFlag;
 	bool addCurveAttractorFlagSet;
+
+	MString addKeyPoseFlag;
+	bool addKeyPoseFlagSet;
+
 	int iterationFlag;
 	bool iterationFlagSet;
 	double stiffnessFlag;
@@ -115,12 +123,13 @@ private:
 	bool getConnectedVerts(MItMeshVertex& meshIter, MIntArray& connVerts, int currVertIndex);
 	bool bubbleSort(MIntArray& vertsToRemove);
 	static MVector getCurrNormal(MPointArray& inputPts, MIntArray& connVerts);
-	static MVector projectVrtToPlane(MVector vrt, MVector nrml, double d);	
+	static MVector projectVrtToPlane(MVector vrt, MVector nrml, double d);
 	bool addCollider();
 	bool addCurveCollider();
 	bool addSphereCollider();
 	bool addAttractor();
 	bool addCurveAttractor();
+	bool addKeyPose();
 	
 };
 
