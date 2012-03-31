@@ -37,7 +37,7 @@
 #include <maya/MMatrixArray.h>
 
 #include <maya/MItMeshVertex.h>
-#include <maya/MPxLocatorNode.h> 
+#include <maya/MPxLocatorNode.h>
 
 #include "CRSpline.h"
 
@@ -178,22 +178,23 @@ MStatus stretchMeshDeformer::initialize()
 	nAttr.setReadable(false);
 	nAttr.setStorable(true);
 	nAttr.setHidden(true);
-	addAttribute( stretchMeshVersion ); 
+	addAttribute( stretchMeshVersion );
 
 	collisionStep=nAttr.create( "collisionStep", "collS", MFnNumericData::kInt );
 	nAttr.setDefault(1);
 	nAttr.setMin(1);
 	nAttr.setKeyable(true);
-	addAttribute( collisionStep); 
+	addAttribute( collisionStep);
 	
 	iterations=nAttr.create( "iterations", "itr", MFnNumericData::kInt );
-	// iterations is defaulted to 0 so that the deformer effectively doesn't run during the setup process. The stretchMeshDeformer() 
-	// python script will set the iterations attribute after the initialization of all the relevant deformer attributes (mean_weights, 
-	// conn_vrt_ids and b). 
+
+	// iterations is defaulted to 0 so that the deformer effectively doesn't run during the setup process
+	// The stretchMeshDeformer() python script will set the iterations attribute after the initialization
+	// of all the relevant deformer attributes (mean_weights, conn_vrt_ids and b).
 	nAttr.setDefault(0);
 	nAttr.setMin(0);
 	nAttr.setKeyable(true);
-	addAttribute( iterations); 
+	addAttribute(iterations);
 
 	collisions = nAttr.create( "collisions", "coll", MFnNumericData::kBoolean, true );
 	nAttr.setKeyable(true);
@@ -205,11 +206,11 @@ MStatus stretchMeshDeformer::initialize()
 	nAttr.setKeyable(false);
 	nAttr.setArray(true);
 	nAttr.setReadable(true);
-	nAttr.setUsesArrayDataBuilder(true); 
+	nAttr.setUsesArrayDataBuilder(true);
 	nAttr.setStorable(true);
-	addAttribute( meanWeights ); 
+	addAttribute( meanWeights );
 
-	meanWeightsList=cmpAttr.create( "meanWeightsList", "mwl" );
+	meanWeightsList = cmpAttr.create( "meanWeightsList", "mwl" );
 	cmpAttr.addChild(meanWeights);
 	cmpAttr.setHidden(true);
 	cmpAttr.setArray(true);
@@ -250,17 +251,17 @@ MStatus stretchMeshDeformer::initialize()
 	cmpAttr.setArray(true);
 	//cmpAttr.setUsesArrayDataBuilder(true);
 	cmpAttr.setStorable(true);
-	addAttribute( connVrtIdNrmlOrderList ); 
+	addAttribute( connVrtIdNrmlOrderList );
 	
-	b=nAttr.create( "b", "b", MFnNumericData::kDouble );
+	b = nAttr.create( "b", "b", MFnNumericData::kDouble );
 	nAttr.setDefault(-1.0);
 	nAttr.setKeyable(false);
 	nAttr.setArray(true);
 	nAttr.setReadable(true);
-	nAttr.setUsesArrayDataBuilder(true); 
+	nAttr.setUsesArrayDataBuilder(true);
 	nAttr.setStorable(true);
 	nAttr.setHidden(true);
-	addAttribute( b ); 
+	addAttribute( b );
 
 	enableScaleSafe = nAttr.create( "enableScaleSafe", "ess", MFnNumericData::kBoolean, false );
 	nAttr.setKeyable(true);
@@ -365,11 +366,11 @@ MStatus stretchMeshDeformer::initialize()
 	cmpAttr.setHidden(true);
 	cmpAttr.setArray(true);
 	cmpAttr.setUsesArrayDataBuilder(true);
-	addAttribute( crvAttractorAttachUVList ); 
+	addAttribute( crvAttractorAttachUVList );
 	// End curve attractors
 	
 	// Make sure the <kDoubleArray> attribute has a default value. Behaves weird otherwise.
-	MDoubleArray	defaultDoubleArray;
+	MDoubleArray defaultDoubleArray;
 	MFnDoubleArrayData defaultDoubleArrayData;
 	MObject defaultDoubleArrayAttr;
 	defaultDoubleArrayAttr = defaultDoubleArrayData.create(defaultDoubleArray);
@@ -583,9 +584,6 @@ stretchMeshDeformer::deform( MDataBlock& block,
 //
 //
 {
-	// If not licensed, pass through
-	if ( !Licensed )
-		return MStatus::kSuccess;
 
 	// do this if we are using an OpenMP implementation that is not the same as Maya's.
 	// Even if it is the same, it does no harm to make this call. testing svn on ubuntu
@@ -623,6 +621,7 @@ stretchMeshDeformer::deform( MDataBlock& block,
 	MDataHandle outMesh = outputData.outputValue( &outGeomStatus );
 	MObject meshObj;
 	meshObj = outMesh.asMesh();
+
 	// Create a vertex iterator from the output mesh
 	MStatus stat;
 	MItMeshVertex vertIter(meshObj, &status);
@@ -712,12 +711,15 @@ stretchMeshDeformer::deform( MDataBlock& block,
 	
 	// determine the envelope (this is a global scale factor)
 	//
-	MDataHandle envData = block.inputValue(envelope,&status);
+	MDataHandle envData = block.inputValue(envelope, &status);
 	McheckErr(status, "Error getting envelope data handle\n");
 	double envelope = envData.asFloat();
+
+	// if envelope is zero, short circuit -- optimization
 	if (envelope == 0.0) {
 		return MS::kSuccess;
 	}
+
 	MPlug colliderDestPlugArray(thisNode, mshCollider);
 	MPlug attractorStrengthPlugArray(thisNode, attrctrStrength);
 	MPlug crvAttractorStrengthPlugArray(thisNode, crvAttractorStrength);
@@ -1089,7 +1091,7 @@ stretchMeshDeformer::deform( MDataBlock& block,
 			weightHndl.jumpToElement( i );
 			currMeanWeight.meanWeights.push_back(weightHndl.inputValue().asDouble());
 		}
-		meanWeightsArray.push_back(currMeanWeight);		
+		meanWeightsArray.push_back(currMeanWeight);
 		
 		currBScalable.bScalable.clear();
 		// check that the bScalable array has actually been populated (won't be the case with older nodes)
