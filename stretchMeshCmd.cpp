@@ -1335,6 +1335,11 @@ bool stretchMeshCmd::addKeyPose()
 	MFnDependencyNode keyPoseDepNode;
 	keyPoseDepNode.setObject(keyPosePath.node());
 
+	if (keyPosePath.apiType() != MFn::kMesh) {
+		MGlobal::displayError("Given key pose must be a polygonal mesh");
+		return false;
+	}
+
 	return true;
 }
 
