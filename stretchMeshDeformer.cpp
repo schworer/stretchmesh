@@ -51,6 +51,12 @@ MTypeId     stretchMeshDeformer::id( 0x00113000 );
 // stretchMeshDeformer attributes  //
 ////////////////////////
 
+MObject     stretchMeshDeformer::numKeyPoses;
+MObject     stretchMeshDeformer::meanWeightsListList;
+MObject     stretchMeshDeformer::connVrtIdListList;
+MObject     stretchMeshDeformer::connVrtIdNrmlOrderListList;
+MObject     stretchMeshDeformer::bScalableListList;
+
 MObject     stretchMeshDeformer::stretchMeshVersion;
 MObject     stretchMeshDeformer::collisionStep;
 MObject     stretchMeshDeformer::iterations;
@@ -74,6 +80,7 @@ MObject     stretchMeshDeformer::attrctrVrtMult;
 MObject     stretchMeshDeformer::attrPaintWeights;
 MObject     stretchMeshDeformer::attrPaintTrans;
 MObject     stretchMeshDeformer::attrPaintArrDirty;
+
 // curve attractors
 MObject     stretchMeshDeformer::crvAttractorCurve;
 MObject     stretchMeshDeformer::crvAttractorStrength;
@@ -82,6 +89,7 @@ MObject     stretchMeshDeformer::crvAttractorVrtMult;
 MObject     stretchMeshDeformer::crvAttractorAttachUVList;
 MObject     stretchMeshDeformer::crvAttractorAttachUV;
 // end curve attractors
+
 MObject     stretchMeshDeformer::mshCollider;
 MObject     stretchMeshDeformer::mshColliderPad;
 MObject     stretchMeshDeformer::mshColliderInflated;
@@ -185,7 +193,13 @@ MStatus stretchMeshDeformer::initialize()
 	nAttr.setMin(1);
 	nAttr.setKeyable(true);
 	addAttribute( collisionStep);
-	
+
+	numKeyPoses = nAttr.create("numKeyPoses", "nkp", MFnNumericData::kInt);
+	nAttr.setDefault(0);
+	nAttr.setMin(0);
+	nAttr.setKeyable(true);
+	addAttribute(numKeyPoses);
+
 	iterations=nAttr.create( "iterations", "itr", MFnNumericData::kInt );
 
 	// iterations is defaulted to 0 so that the deformer effectively doesn't run during the setup process
@@ -215,35 +229,47 @@ MStatus stretchMeshDeformer::initialize()
 	cmpAttr.setHidden(true);
 	cmpAttr.setArray(true);
 	cmpAttr.setUsesArrayDataBuilder(true);
-	addAttribute( meanWeightsList ); 
+	addAttribute( meanWeightsList );
+
+	meanWeightsListList = cmpAttr.create( "meanWeightsListList", "mwll" );
+	cmpAttr.addChild(meanWeightsList);
+	cmpAttr.setHidden(true);
+	cmpAttr.setArray(true);
+	cmpAttr.setUsesArrayDataBuilder(true);
+	addAttribute( meanWeightsListList );
 
 	connVrtId=nAttr.create( "connVrtId", "cvid", MFnNumericData::kInt );
 	nAttr.setDefault(-1);
 	nAttr.setKeyable(false);
 	nAttr.setArray(true);
 	nAttr.setReadable(true);
-	//nAttr.setUsesArrayDataBuilder(true); 
 	nAttr.setStorable(true);
 	nAttr.setHidden(true);
-	addAttribute( connVrtId ); 
+	addAttribute( connVrtId );
 
 	connVrtIdList=cmpAttr.create( "connVrtIdList", "cvidl" );
 	cmpAttr.addChild(connVrtId);
 	cmpAttr.setHidden(true);
 	cmpAttr.setArray(true);
-	//cmpAttr.setUsesArrayDataBuilder(true);
 	cmpAttr.setStorable(true);
-	addAttribute( connVrtIdList ); 
+	addAttribute( connVrtIdList );
+
+	connVrtIdListList = cmpAttr.create("connVrtIdListList", "cvidll");
+	cmpAttr.addChild(connVrtIdList);
+	cmpAttr.setHidden(true);
+	cmpAttr.setArray(true);
+	cmpAttr.setStorable(true);
+	addAttribute(connVrtIdListList);
 
 	connVrtIdNrmlOrder=nAttr.create( "connVrtIdNrmlOrder", "cvidN", MFnNumericData::kInt );
 	nAttr.setDefault(-1);
 	nAttr.setKeyable(false);
 	nAttr.setArray(true);
 	nAttr.setReadable(true);
-	//nAttr.setUsesArrayDataBuilder(true); 
+	//nAttr.setUsesArrayDataBuilder(true);
 	nAttr.setStorable(true);
 	nAttr.setHidden(true);
-	addAttribute( connVrtIdNrmlOrder ); 
+	addAttribute( connVrtIdNrmlOrder );
 
 	connVrtIdNrmlOrderList=cmpAttr.create( "connVrtIdNrmlOrderList", "cvidnl" );
 	cmpAttr.addChild(connVrtIdNrmlOrder);
@@ -253,6 +279,14 @@ MStatus stretchMeshDeformer::initialize()
 	cmpAttr.setStorable(true);
 	addAttribute( connVrtIdNrmlOrderList );
 	
+	connVrtIdNrmlOrderListList=cmpAttr.create( "connVrtIdNrmlOrderListList", "cvidnll" );
+	cmpAttr.addChild(connVrtIdNrmlOrderList);
+	cmpAttr.setHidden(true);
+	cmpAttr.setArray(true);
+	//cmpAttr.setUsesArrayDataBuilder(true);
+	cmpAttr.setStorable(true);
+	addAttribute( connVrtIdNrmlOrderListList );
+
 	b = nAttr.create( "b", "b", MFnNumericData::kDouble );
 	nAttr.setDefault(-1.0);
 	nAttr.setKeyable(false);
@@ -285,6 +319,13 @@ MStatus stretchMeshDeformer::initialize()
 	cmpAttr.setUsesArrayDataBuilder(true);
 	addAttribute( bScalableList ); 
 	
+	bScalableListList=cmpAttr.create( "bScalableListList", "bsl" );
+	cmpAttr.addChild(bScalableList);
+	cmpAttr.setHidden(true);
+	cmpAttr.setArray(true);
+	cmpAttr.setUsesArrayDataBuilder(true);
+	addAttribute( bScalableListList ); 
+
 	stiffness=stfAttr.create( "stiffness", "stf", MFnNumericData::kFloat, 0.0);
 	stfAttr.setHidden(true);
 	stfAttr.setStorable(true);

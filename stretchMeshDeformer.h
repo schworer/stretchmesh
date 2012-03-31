@@ -61,16 +61,23 @@ public:
 	static MObject		collisionStep;  // Optimization: defines how frequently collisions are performed.
 								// a value of 3 means perform collisions on every third iteration.
 								// collisions are always performed on the last iteration.
+	// key poses
+	static MObject numKeyPoses;
+
 	static MObject		iterations;
 	static MObject		collisions;		// whether or not to evaluate collision objects
+	static MObject		meanWeightsListList;
 	static MObject		meanWeightsList;
 	static MObject		meanWeights;
+	static MObject		connVrtIdListList;
 	static MObject		connVrtIdList;
 	static MObject		connVrtId;
+	static MObject		connVrtIdNrmlOrderListList;
 	static MObject		connVrtIdNrmlOrderList;
 	static MObject		connVrtIdNrmlOrder;
 	static MObject		enableScaleSafe;
 	static MObject		b;
+	static MObject		bScalableListList;
 	static MObject		bScalableList;
 	static MObject		bScalable;
 	static MObject		stiffnessList;
@@ -89,8 +96,10 @@ public:
 	static MObject		crvAttractorVrtMultList;
 	static MObject		crvAttractorVrtMult;
 	static MObject		crvAttractorAttachUVList;
-	static MObject		crvAttractorAttachUV;	
+	static MObject		crvAttractorAttachUV;
 	// end curve attractors
+
+	// colliders
 	static MObject		mshCollider;
 	static MObject		mshColliderPad;
 	static MObject		mshColliderInflated;
@@ -108,6 +117,7 @@ public:
 	static MObject		crvColliderVrtMult;
 	static MObject		crvColliderRadiusList;
 	static MObject		crvColliderRadius;
+
 	static MTypeId	id;
 
 private:
