@@ -52,3 +52,5 @@ $(LIBRARY): $(OBJECTS)
 clean:
 	rm -f *.o *.bundle
 
+install:
+	cp stretchMesh2012.bundle ../maya_tools/plugins/build/osx/
