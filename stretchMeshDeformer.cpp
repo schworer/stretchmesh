@@ -52,6 +52,7 @@ MTypeId     stretchMeshDeformer::id( 0x00113000 );
 ////////////////////////
 
 MObject     stretchMeshDeformer::numKeyPoses;
+MObject     stretchMeshDeformer::keyPoseWeights;
 MObject     stretchMeshDeformer::meanWeightsListList;
 MObject     stretchMeshDeformer::connVrtIdListList;
 MObject     stretchMeshDeformer::connVrtIdNrmlOrderListList;
@@ -199,6 +200,14 @@ MStatus stretchMeshDeformer::initialize()
 	nAttr.setMin(0);
 	nAttr.setKeyable(true);
 	addAttribute(numKeyPoses);
+
+	keyPoseWeights = nAttr.create("keyPoseWeights", "kpw", MFnNumericData::kFloat);
+	nAttr.setArray(true);
+	nAttr.setReadable(true);
+	nAttr.setKeyable(false);
+	nAttr.setConnectable(true);
+	nAttr.setHidden(true);
+	addAttribute(keyPoseWeights);
 
 	iterations=nAttr.create( "iterations", "itr", MFnNumericData::kInt );
 

@@ -63,6 +63,7 @@ public:
 								// collisions are always performed on the last iteration.
 	// key poses
 	static MObject numKeyPoses;
+	static MObject keyPoseWeights;
 
 	static MObject		iterations;
 	static MObject		collisions;		// whether or not to evaluate collision objects
