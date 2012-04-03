@@ -1340,7 +1340,18 @@ bool stretchMeshCmd::addKeyPose()
 		return false;
 	}
 
-	return true;
+	MPlug numTargetsPlug;
+	numTargetsPlug = deformerFnDepNode.findPlug("numKeyPoses");
+	int numKeyPoses;
+	numTargetsPlug.getValue(numKeyPoses);
+	numKeyPoses++;
+	numTargetsPlug.setValue(numKeyPoses);
+
+	MPlug keyPoseWeightsPlug;
+	keyPoseWeightsPlug = deformerFnDepNode.findPlug("keyPoseWeights");
+	keyPoseWeightsPlug.elementByLogicalIndex(numKeyPoses);
+	keyPoseWeightsPlug.setValue(0.0);
+
 }
 
 bool stretchMeshCmd::addAttractor()
