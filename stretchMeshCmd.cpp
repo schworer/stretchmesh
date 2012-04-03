@@ -1601,9 +1601,11 @@ MStatus stretchMeshCmd::buildstretchMeshCmdMenu()
 	buildMenuCmd += "global string $gMainWindow;\n";
 	buildMenuCmd += "if (!`menu -exists $stretchMeshCmdMenuCtrl`)\n";
 	buildMenuCmd += "	$stretchMeshCmdMenuCtrl = `menu -p $gMainWindow -to true -l $name -aob true`;\n";
-	//buildMenuCmd += "deleteUI $stretchMeshCmdMenuCtrl;\n";
 	buildMenuCmd += "menuItem -p $stretchMeshCmdMenuCtrl -da 1 -l \"Create New StretchMesh\" -c (\"stretchMesh()\") -ann \"Select items to deform\";\n";
 	buildMenuCmd += "menuItem -p $stretchMeshCmdMenuCtrl -optionBox true -c (\"stretchMeshOption()\");\n";
+	buildMenuCmd += "menuItem -p $stretchMeshCmdMenuCtrl -subMenu true -label \"Key Poses\";\n";
+	buildMenuCmd += "menuItem -da 1 -l \"Add Key Pose\" -c (\"addstretchMeshKeyPose()\") -ann \"Select StretchMesh surface followed by key pose object\";\n";
+	buildMenuCmd += "setParent -menu ..;\n";
     buildMenuCmd += "menuItem -p $stretchMeshCmdMenuCtrl -subMenu true -label \"Colliders\";\n";
 	buildMenuCmd += "menuItem -da 1 -l \"Add Mesh Collider\" -c (\"addstretchMeshCmdCollisionObj()\") -ann \"Select StretchMesh surface followed by collision object\";\n";
 	buildMenuCmd += "menuItem -da 1 -l \"Add Curve Collider\" -c (\"addStretchMeshCurveCollider()\") -ann \"Select StretchMesh surface followed by collision curve\";\n";
@@ -2060,6 +2062,47 @@ MStatus stretchMeshCmd::buildstretchMeshCmdMenu()
 	buildMenuCmd += "		}\n";
 	buildMenuCmd += "}\n";
 	
+	// add key pose
+	buildMenuCmd += "global proc addstretchMeshKeyPose(){\n";
+	buildMenuCmd += "	string $sel[];\n";
+	buildMenuCmd += "	$sel = `ls -sl -fl`;\n";
+	buildMenuCmd += "	int $i;\n";
+	buildMenuCmd += "	int $j;\n";	
+	buildMenuCmd += "	string $stretchMesh;\n";
+	buildMenuCmd += "	for($i = 0; $i < `size($sel)`; $i++){\n";
+	
+	buildMenuCmd += "		string $history[] = `listHistory($sel[$i])`;\n";
+	buildMenuCmd += "		for($j = 0; $j < `size($history)`; $j++){\n";
+	buildMenuCmd += "			if(`nodeType($history[$j])` == \"stretchMesh\"){\n";
+	buildMenuCmd += "				$stretchMesh = $history[$j];\n";
+	buildMenuCmd += "			}\n";
+	buildMenuCmd += "		}\n";
+	buildMenuCmd += "}\n";
+	
+	buildMenuCmd += "	if($stretchMesh == \"\"){\n";
+	buildMenuCmd += "		error \"Select vertices on a mesh that has a stretchMeshCmd deformer\";\n";
+	buildMenuCmd += "		return;\n";
+	buildMenuCmd += "	}\n";
+
+	buildMenuCmd += "	setAttr (($stretchMesh + \".nodeState\"), 1);\n";
+
+	buildMenuCmd += "	string $shape = \"\";\n";
+	buildMenuCmd += "	for($i = 0; $i < `size($sel)`; $i++){\n";
+	buildMenuCmd += "		if (`nodeType($sel[$i])` == \"mesh\"){\n";
+	buildMenuCmd += "			$shape = $sel[$i];\n";
+	buildMenuCmd += "		}\n";
+	buildMenuCmd += "	}\n";
+
+	buildMenuCmd += "	int $numKeyPoses = `getAttr ($stretchMesh + \".numKeyPoses\")`;\n";
+	buildMenuCmd += "	print $numKeyPoses;\n";
+
+	buildMenuCmd += "	stretchMesh -edit -addKeyPose $shape $stretchMesh;\n";
+	buildMenuCmd += "	setAttr(($stretchMesh + \".keyPoseWeights[\" + $numKeyPoses + \"]\"), 1.0);\n";
+
+	buildMenuCmd += "	print $numKeyPoses;\n";
+
+	buildMenuCmd += "}\n";
+
 	
 	///////////////////////////////////////////////////////////////////////////////////////////////////////
 	//
