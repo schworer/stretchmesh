@@ -653,7 +653,7 @@ MStatus stretchMeshCmd::redoIt()
 						MGlobal::executeCommand( "error \"stretchMesh currently only supports meshes with 32 or fewer connected vertices per vertex\"" );
 						return MStatus::kFailure;
 					}
-					double alpha1 = polarCoordsArray[j].wedgeAngle;						
+					double alpha1 = polarCoordsArray[j].wedgeAngle;
 					double alpha2 = polarCoordsArray[(j+1)%connVerts.length()].wedgeAngle;
 					
 					weightsSum = weightsSum + (tan(alpha1/2) + tan(alpha2/2))/polarCoordsArray[j].polarDistance;
@@ -663,11 +663,22 @@ MStatus stretchMeshCmd::redoIt()
 				int weightItr = 0;
 				for(int j = 0; j < mvWeights.length(); j++){
 					mvWeights[j] = mvWeights[j]/weightsSum;
+
 					deformerPlug = deformerFnDepNode.findPlug("meanWeightsList");
-					deformerPlug = deformerPlug.elementByLogicalIndex( vertId );
+					deformerPlug = deformerPlug.elementByLogicalIndex(vertId);
 					deformerPlug = deformerPlug.child(0);
-					deformerPlug = deformerPlug.elementByLogicalIndex( j );
-					deformerPlug.setValue( mvWeights[j] );
+					deformerPlug = deformerPlug.elementByLogicalIndex(j);
+					deformerPlug.setValue(mvWeights[j]);
+
+					/*
+					deformerPlug = deformerFnDepNode.findPlug("meanWeightsListList");
+					deformerPlug = deformerPlug.elementByLogicalIndex(0);
+					deformerPlug = deformerPlug.child(0);
+					deformerPlug = deformerPlug.elementByLogicalIndex(vertId);
+					deformerPlug = deformerPlug.child(0);
+					deformerPlug = deformerPlug.elementByLogicalIndex(j);
+					deformerPlug.setValue(mvWeights[j]);
+					*/
 					weightItr = weightItr + 1;
 				}
 				
@@ -2117,7 +2128,7 @@ MStatus stretchMeshCmd::buildstretchMeshCmdMenu()
 	buildMenuCmd += "	$sel = `ls -sl -fl`;\n";
 	buildMenuCmd += "	int $i;\n";
 	buildMenuCmd += "	int $j;\n";	
-	buildMenuCmd += "	string $stretchMesh;\n";		
+	buildMenuCmd += "	string $stretchMesh;\n";
 	buildMenuCmd += "	for($i = 0; $i < `size($sel)`; $i++){\n";
 	
 	buildMenuCmd += "		string $history[] = `listHistory($sel[$i])`;\n";

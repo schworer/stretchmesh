@@ -241,10 +241,10 @@ MStatus stretchMeshDeformer::initialize()
 	addAttribute( meanWeightsList );
 
 	meanWeightsListList = cmpAttr.create( "meanWeightsListList", "mwll" );
-	cmpAttr.addChild(meanWeightsList);
+	cmpAttr.addChild(meanWeights);
 	cmpAttr.setHidden(true);
 	cmpAttr.setArray(true);
-	cmpAttr.setUsesArrayDataBuilder(true);
+	//cmpAttr.setUsesArrayDataBuilder(true);
 	addAttribute( meanWeightsListList );
 
 	connVrtId=nAttr.create( "connVrtId", "cvid", MFnNumericData::kInt );
@@ -264,7 +264,7 @@ MStatus stretchMeshDeformer::initialize()
 	addAttribute( connVrtIdList );
 
 	connVrtIdListList = cmpAttr.create("connVrtIdListList", "cvidll");
-	cmpAttr.addChild(connVrtIdList);
+	//cmpAttr.addChild(connVrtIdList);
 	cmpAttr.setHidden(true);
 	cmpAttr.setArray(true);
 	cmpAttr.setStorable(true);
@@ -287,9 +287,9 @@ MStatus stretchMeshDeformer::initialize()
 	//cmpAttr.setUsesArrayDataBuilder(true);
 	cmpAttr.setStorable(true);
 	addAttribute( connVrtIdNrmlOrderList );
-	
+
 	connVrtIdNrmlOrderListList=cmpAttr.create( "connVrtIdNrmlOrderListList", "cvidnll" );
-	cmpAttr.addChild(connVrtIdNrmlOrderList);
+	//cmpAttr.addChild(connVrtIdNrmlOrderList);
 	cmpAttr.setHidden(true);
 	cmpAttr.setArray(true);
 	//cmpAttr.setUsesArrayDataBuilder(true);
@@ -327,9 +327,9 @@ MStatus stretchMeshDeformer::initialize()
 	cmpAttr.setArray(true);
 	cmpAttr.setUsesArrayDataBuilder(true);
 	addAttribute( bScalableList ); 
-	
+
 	bScalableListList=cmpAttr.create( "bScalableListList", "bsl" );
-	cmpAttr.addChild(bScalableList);
+	//cmpAttr.addChild(bScalableList);
 	cmpAttr.setHidden(true);
 	cmpAttr.setArray(true);
 	cmpAttr.setUsesArrayDataBuilder(true);
@@ -594,6 +594,7 @@ MStatus stretchMeshDeformer::initialize()
 	attributeAffects( stretchMeshDeformer::crvColliderVrtMult, stretchMeshDeformer::outputGeom);
 	attributeAffects( stretchMeshDeformer::crvColliderRadius, stretchMeshDeformer::outputGeom);
 
+
 	return MS::kSuccess;
 }
 
@@ -681,8 +682,12 @@ stretchMeshDeformer::deform( MDataBlock& block,
 		return status;
 	}
 	
+
 	MArrayDataHandle weightListHndl = block.inputArrayValue(meanWeightsList, &stat);
 	if(!stat){stat.perror("weights array handle construction failed\n");}
+
+	MArrayDataHandle weightListListHndl = block.inputArrayValue(meanWeightsListList, &stat);
+	if(!stat){stat.perror("weights list array handle construction failed\n");}
 
 	MArrayDataHandle connVrtListHndl = block.inputArrayValue(connVrtIdList, &stat);
 	if(!stat){stat.perror("connVrtIdList array handle construction failed\n");}
@@ -1059,6 +1064,9 @@ stretchMeshDeformer::deform( MDataBlock& block,
 	bScalableArray.clear();
 	smBScalable currBScalable;
 
+	vector< vector<smMeanWeights> > meanWeightsMatrix;
+	meanWeightsMatrix.clear();
+
 	vector<smMeanWeights> meanWeightsArray;
 	meanWeightsArray.clear();
 	smMeanWeights currMeanWeight;
@@ -1117,7 +1125,7 @@ stretchMeshDeformer::deform( MDataBlock& block,
 			connVrtHndl.jumpToArrayElement( i );
 			currVert.connectedVerts.push_back(connVrtHndl.inputValue().asInt());
 		}
-		connectedVertArray.push_back(currVert);		
+		connectedVertArray.push_back(currVert);
 		
 		if(stretchMeshVers >= SM_POLAR_FIX){
 			currVertNrmlOrder.connectedVerts.clear();
@@ -1133,7 +1141,10 @@ stretchMeshDeformer::deform( MDataBlock& block,
 		}
 		
 		currMeanWeight.meanWeights.clear();
-		status = weightListHndl.jumpToArrayElement( curr_vrt_index );
+		//status = weightListListHndl.jumpToArrayElement( 0 );
+		McheckErr(status, "jump to mean weight list list failed\n");
+		//MArrayDataHandle weightListHndl = weightListListHndl.inputValue(&status).child(meanWeightsList);
+		status = weightListHndl.jumpToArrayElement(curr_vrt_index);
 		McheckErr(status, "Jump to mean weight list array element failed\n");
 		MArrayDataHandle weightHndl = weightListHndl.inputValue(&status).child(meanWeights);
 		num_conn_vrts = weightHndl.elementCount();
@@ -1141,6 +1152,7 @@ stretchMeshDeformer::deform( MDataBlock& block,
 			weightHndl.jumpToElement( i );
 			currMeanWeight.meanWeights.push_back(weightHndl.inputValue().asDouble());
 		}
+		//meanWeightsMatrix[0].push_back(currMeanWeight);
 		meanWeightsArray.push_back(currMeanWeight);
 		
 		currBScalable.bScalable.clear();
@@ -1154,7 +1166,7 @@ stretchMeshDeformer::deform( MDataBlock& block,
 				bScalableHndl.jumpToElement( i );
 				currBScalable.bScalable.push_back(bScalableHndl.inputValue().asDouble());
 			}
-			bScalableArray.push_back(currBScalable);	
+			bScalableArray.push_back(currBScalable);
 		}
 		
 		currAttractorMult.attractorMults.clear();
@@ -1169,7 +1181,7 @@ stretchMeshDeformer::deform( MDataBlock& block,
 					currAttractorMult.attractorMults.push_back(attrctrMults.inputValue().asDouble());
 				}
 			}
-			attractorMultsArray.push_back(currAttractorMult);						
+			attractorMultsArray.push_back(currAttractorMult);
 		}else{
 			// This is necessary for v1.0... aVrtMultListHndl.jumpToElement() fails if the specific vert
 			// wasn't initialized during the attractor creation
@@ -1550,6 +1562,7 @@ stretchMeshDeformer::deform( MDataBlock& block,
 			for (j=0; j < numConnVrts; j++){
 				double weight_curr;
 				weight_curr = meanWeightsArray[curr_vrt_index].meanWeights[j];
+				//weight_curr = meanWeightsMatrix[0][curr_vrt_index].meanWeights[j];
 				v_prime = v_prime + weight_curr*(connPtT[j] - (d + (connPtT[j]*currNrml))*currNrml);
 			}
 			
@@ -1583,6 +1596,7 @@ stretchMeshDeformer::deform( MDataBlock& block,
 				for(j=0; j< numConnVrts; j++){
 					MVector connToVPrime = v_prime - conn_pt_prj_t[j];
 					vPrimeToV = vPrimeToV + meanWeightsArray[curr_vrt_index].meanWeights[j] * ((connToVPrime.length() * bScalableArray[curr_vrt_index].bScalable[j]) + (connPtT[j] - conn_pt_prj_t[j])*currNrml)*currNrml;
+					//vPrimeToV = vPrimeToV + meanWeightsMatrix[0][curr_vrt_index].meanWeights[j] * ((connToVPrime.length() * bScalableArray[curr_vrt_index].bScalable[j]) + (connPtT[j] - conn_pt_prj_t[j])*currNrml)*currNrml;
 				}
 				v = v_prime + vPrimeToV;
 			}else{
