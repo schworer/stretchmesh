@@ -108,6 +108,8 @@ private:
 	bool extendConnectedVertsFlag;
 	bool extendConnectedVertsFlagSet;
 	MFnDependencyNode deformerFnDepNode;
+	MDagPath stretchMeshDagPath;
+	//MItMeshVertex stretchMeshVertIter;
 	MStringArray stretchMeshesCreated;
 	MDGModifier dgModifier;
 	
@@ -130,7 +132,7 @@ private:
 	bool addAttractor();
 	bool addCurveAttractor();
 	bool addKeyPose();
-	
+	bool initializePose(MDagPath keyPosePath, int poseIndex);
 };
 
 #endif

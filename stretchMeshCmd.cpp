@@ -343,7 +343,6 @@ MStatus stretchMeshCmd::redoIt()
 		
 		// Find the StretchMesh node from the selected object
 		MObject argObj;
-		MObject stretchMeshObj;
 		selected.getDependNode(0, argObj);
 		MFnDependencyNode argFn;
 		argFn.setObject(argObj);
@@ -351,6 +350,21 @@ MStatus stretchMeshCmd::redoIt()
 		// First, we check to see if argObj is the StretchMesh node.
 		if(argFn.typeName() == "stretchMesh"){
 			deformerFnDepNode.setObject(argObj);
+			MPlug stretchMeshPlug;
+
+			stretchMeshPlug = deformerFnDepNode.findPlug("outputGeometry");
+			stretchMeshPlug = stretchMeshPlug[0];
+			MPlugArray connectedPlugs;
+			stretchMeshPlug.connectedTo(connectedPlugs, false, true);
+
+			MDagPath stretchMeshDagPath;
+			MObject shapeObj = connectedPlugs[0].node();
+			MSelectionList shapeSelectionList;
+			shapeSelectionList.add(shapeObj);
+			shapeSelectionList.getDagPath(0, stretchMeshDagPath);
+
+
+
 		}else{
 			// If we've gotten here, the argument to the command was not the stretchMesh, so we 
 			// have to search for it in the input to this mesh's inMesh attr. 
@@ -513,8 +527,10 @@ MStatus stretchMeshCmd::redoIt()
 				inputPts[vertIter.index()] = vertIter.position( MSpace::kWorld );
 			}
 			
-			connVrtIdPlugArray = deformerFnDepNode.findPlug("connVrtIdList");
-			connVrtIdPlugArray.setNumElements(vertCount);
+			//connVrtIdPlugArray = deformerFnDepNode.findPlug("connVrtIdListList");
+			//nnVrtIdPlugArray = connVrtIdPlugArray.elementByLogicalIndex(0);
+			//connVrtIdPlugArray = connVrtIdPlugArray.child(0);
+			//connVrtIdPlugArray.setNumElements(vertCount);
 			connVrtIdNrmlOrderPlugArray = deformerFnDepNode.findPlug("connVrtIdNrmlOrderList");
 			connVrtIdNrmlOrderPlugArray.setNumElements(vertCount);
 			
@@ -529,14 +545,7 @@ MStatus stretchMeshCmd::redoIt()
 				}else{
 					pyramidCoordsIter.getConnectedVertices( connVerts );
 				}
-//					// The paper calls for the connected verts to be in counter clockwise order, but getConnectedVertices returns
-//					// them in clockwise order.  I'm reversing them here to be consistent with the paper...
-//					int connVertsItr = connVertsReverse.length();
-//					connVertsItr = connVertsItr - 1;
-//					connVerts.clear();
-//					for( ; connVertsItr >= 0; connVertsItr--){
-//						connVerts.append( connVertsReverse[connVertsItr] );
-//					}
+
 				nrml = getCurrNormal(inputPts, connVerts);
 				
 				// Determine the d term of the projection plane equation
@@ -623,7 +632,7 @@ MStatus stretchMeshCmd::redoIt()
 				// The first wedgeAngle is incorrectly set to zero, fixing that here:
 				polarCoordsArray[0].wedgeAngle = (2.0*PI) - polarCoordsArray.back().polarAngle;
 														
-				// set the attributes representing the connected verts.  
+				// set the attributes representing the connected verts.
 				connVrtIdPlug = connVrtIdPlugArray.elementByLogicalIndex(vertId);
 				connVrtIdPlug = connVrtIdPlug.child(0);
 				connVrtIdPlug.setNumElements(connVerts.length());
@@ -636,8 +645,17 @@ MStatus stretchMeshCmd::redoIt()
 					// one in an order consistent with the way the normal is calculated, and one in
 					// a way that is consistent with the way the polar angles are stored. Polar 
 					// angle order here:
-					polarCoordsPlug = connVrtIdPlug.elementByLogicalIndex(j);
-					polarCoordsPlug.setValue(polarCoordsArray[j].vertID);
+					connVrtIdPlugArray = deformerFnDepNode.findPlug("connVrtIdListList");
+					connVrtIdPlugArray = connVrtIdPlugArray.elementByLogicalIndex(0);
+					connVrtIdPlugArray = connVrtIdPlugArray.child(0);
+					connVrtIdPlugArray = connVrtIdPlugArray.elementByLogicalIndex(vertId);
+					connVrtIdPlugArray = connVrtIdPlugArray.child(0);
+					connVrtIdPlugArray = connVrtIdPlugArray.elementByLogicalIndex(j);
+					cerr << endl << j;
+					connVrtIdPlugArray.setValue(polarCoordsArray[j].vertID);
+
+					connVrtIdNrmlOrderPlugArray = deformerFnDepNode.findPlug("connVrtIdNrmlOrderList");
+					connVrtIdNrmlOrderPlugArray.setNumElements(vertCount);
 
 					// ... and normal order here:
 					nrmlOrderPlug = connVrtIdNrmlOrderPlug.elementByLogicalIndex(j);
@@ -942,8 +960,6 @@ bool stretchMeshCmd::getConnectedVerts(MItMeshVertex& meshIter, MIntArray& connV
 	return true;
 }
 
-			
-			
 bool stretchMeshCmd::bubbleSort(MIntArray& vertsToRemove)
 {
 	bool swapped;
@@ -990,19 +1006,19 @@ MVector stretchMeshCmd::getCurrNormal(MPointArray& inputPts, MIntArray& connVert
 	MPoint pt;
 	MPoint pt_1;
 	MPoint pt_2;
-	
-	for(unsigned int i = 0; i <  connVerts.length(); i++){
+
+	for(int i = 0; i <  connVerts.length(); i++){
 		pt = inputPts[connVerts[i]];
 		vrtAvg.x = vrtAvg.x + pt.x;
 		vrtAvg.y = vrtAvg.y + pt.y;
 		vrtAvg.z = vrtAvg.z + pt.z;
 	}
-	vrtAvg.x = vrtAvg.x/connVerts.length();
-	vrtAvg.y = vrtAvg.y/connVerts.length();
-	vrtAvg.z = vrtAvg.z/connVerts.length();
-	
+	vrtAvg.x = vrtAvg.x / connVerts.length();
+	vrtAvg.y = vrtAvg.y / connVerts.length();
+	vrtAvg.z = vrtAvg.z / connVerts.length();
+
 	// next, we need to sum the cross products between adjacent verts and the vrt_avg
-	for(unsigned int i = 0; i <  connVerts.length(); i++){
+	for(int i = 0; i <  connVerts.length(); i++){
 		pt_1 = inputPts[connVerts[(i+1)%connVerts.length()]];
 		vec_1.x = pt_1.x; vec_1.y = pt_1.y; vec_1.z = pt_1.z; 
 
@@ -1224,9 +1240,6 @@ bool stretchMeshCmd::addCurveCollider()
 	return true;
 }
 
-
-
-
 bool stretchMeshCmd::addSphereCollider()
 {
 	int sphereColliderIndex = -1;
@@ -1320,6 +1333,155 @@ bool stretchMeshCmd::addSphereCollider()
 	return true;
 }
 
+bool stretchMeshCmd::initializePose(MDagPath keyPosePath, int poseIndex)
+{
+	MVector nrml;
+	MPointArray inputPts;
+	MPoint currVrtPt, connVrtPt;
+	MVector currVrtPos, connVrtPos, currVrtProj, connVrtProj;
+
+	MIntArray connVerts;
+	int prevIndex;
+
+	MPlug connVrtIdPlug;
+	connVrtIdPlug = deformerFnDepNode.findPlug("connVrtIdListList");
+	connVrtIdPlug = connVrtIdPlug.elementByLogicalIndex(poseIndex);
+	connVrtIdPlug = connVrtIdPlug.child(0);
+
+	cerr << endl << "initializing pose";
+	cerr << endl << poseIndex;
+
+	MItMeshVertex keyVertIter(keyPosePath);
+	int keyVertCount = keyVertIter.count();
+	inputPts.clear();
+	inputPts.setLength(keyVertCount);
+	for (; !keyVertIter.isDone(); keyVertIter.next()) {
+		inputPts[keyVertIter.index()] = keyVertIter.position(MSpace::kWorld);
+	}
+
+	cerr << endl << "number of key pose verts:";
+	cerr << endl << keyVertCount;
+
+	MItMeshVertex stretchMeshVertIter(stretchMeshDagPath);
+
+	int stretchMeshCount = stretchMeshVertIter.count();
+
+	if (keyVertCount != stretchMeshCount) {
+		cerr << endl << "inconsistent topology";
+		cerr << endl << stretchMeshDagPath.fullPathName();
+		cerr << endl << keyVertCount;
+		cerr << endl << stretchMeshCount;
+		//return false;
+	}
+
+	for(int vertId = 0; vertId < keyVertCount; vertId++) {
+		connVerts.clear();
+
+		MItMeshVertex pyramidCoordsIter(keyPosePath);
+		pyramidCoordsIter.setIndex(vertId, prevIndex);
+		pyramidCoordsIter.getConnectedVertices(connVerts);
+
+		nrml = getCurrNormal(inputPts, connVerts);
+		cerr << endl << "normal::";
+		cerr << endl << nrml;
+
+		double d = 0.0;
+
+		// for each conn vert, determin d
+		currVrtPt = inputPts[vertId];
+		currVrtPos.x = currVrtPt.x;
+		currVrtPos.y = currVrtPt.y;
+		currVrtPos.z = currVrtPt.z;
+		for (int i=0; i < connVerts.length(); i++) {
+			connVrtPt = inputPts[connVerts[i]];
+			connVrtPos.x = connVrtPt.x;
+			connVrtPos.y = connVrtPt.y;
+			connVrtPos.z = connVrtPt.z;
+			d = d + nrml * connVrtPos;
+		}
+
+		d = -(d/connVerts.length());
+
+		currVrtProj = projectVrtToPlane(currVrtPos, nrml, d);
+
+		MPoint xAxisPt = inputPts[connVerts[0]];
+		MVector xAxis;
+		xAxis.x = xAxisPt.x;
+		xAxis.y = xAxisPt.y;
+		xAxis.z = xAxisPt.z;
+		xAxis = projectVrtToPlane(xAxis, nrml, d);
+		xAxis = xAxis - currVrtProj;
+
+		xAxis.normalize();
+
+		MVector yAxis;
+		yAxis = nrml^xAxis;
+		yAxis.normalize();
+
+		vector<polarCoords> polarCoordsArray;
+		polarCoordsArray.clear();
+
+		for (int connVrtItr=0; connVrtItr < connVerts.length(); connVrtItr++) {
+			double xCoord, yCoord;
+			MPoint connPt = inputPts[connVerts[connVrtItr]];
+			MVector connVec;
+			connVec.x = connPt.x;
+			connVec.y = connPt.y;
+			connVec.z = connPt.z;
+
+			connVec = projectVrtToPlane(connVec, nrml, d);
+			connVec = connVec - currVrtProj;
+			xCoord = connVec*xAxis;
+			yCoord = connVec*yAxis;
+
+			polarCoords currPolarCoords;
+			currPolarCoords.vertID = connVerts[connVrtItr];
+			currPolarCoords.polarDistance = sqrt((xCoord*xCoord) + (yCoord*yCoord));
+
+			// Using the polar coordinate coversion descirbed on wikipedia
+			if(xCoord > 0 && (yCoord > 0 || KS_DOUBLE_EQ(yCoord, 0.0))){
+				currPolarCoords.polarAngle = atan(yCoord/xCoord);
+			}else if(xCoord > 0 && yCoord < 0){
+				currPolarCoords.polarAngle = atan(yCoord/xCoord) + (2.0 * PI);
+			}else if(xCoord < 0){
+				currPolarCoords.polarAngle = atan(yCoord/xCoord) + PI;
+			}else if(KS_DOUBLE_EQ(xCoord, 0.0) && yCoord > 0){
+				currPolarCoords.polarAngle = PI/2.0;
+			}else if(KS_DOUBLE_EQ(xCoord, 0.0) && yCoord < 0){
+				currPolarCoords.polarAngle = (3.0 * PI)/2.0;
+			}else if(KS_DOUBLE_EQ(xCoord, 0.0) && KS_DOUBLE_EQ(yCoord, 0.0)){   // Handling the case of colocated verts
+				currPolarCoords.polarAngle = 0.0;
+			}
+
+			// fill the polarCoords struct
+			polarCoordsArray.push_back(currPolarCoords);
+		}
+		// sort the polar coords array according to the polar angle:
+		sort(polarCoordsArray.begin(), polarCoordsArray.end(), polarCoordsCompare);
+		// We have the polar angles, but now we need to calculate the wedgeAngles which actually
+		// represent the angles we're interested in (see description in polarCoords struct definition above)
+		for(int i = 0; i < polarCoordsArray.size(); i++){
+			if(i==0){
+				polarCoordsArray[i].wedgeAngle = polarCoordsArray[i].polarAngle;
+			}else{
+				polarCoordsArray[i].wedgeAngle = polarCoordsArray[i].polarAngle - polarCoordsArray[i-1].polarAngle;
+			}
+		}
+
+		// The first wedgeAngle is incorrectly set to zero, fixing that here:
+		polarCoordsArray[0].wedgeAngle = (2.0*PI) - polarCoordsArray.back().polarAngle;
+
+		connVrtIdPlug = connVrtIdPlug.elementByLogicalIndex(vertId);
+		connVrtIdPlug = connVrtIdPlug.child(0);
+		connVrtIdPlug.setNumElements(connVerts.length());
+		for (int i = 0; i < connVerts.length(); i++) {
+			connVrtIdPlug = connVrtIdPlug.elementByLogicalIndex(i);
+			connVrtIdPlug.setValue(polarCoordsArray[i].vertID);
+		}
+	}
+	return true;
+}
+
 bool stretchMeshCmd::addKeyPose()
 {
 	// adds a key pose to the current stretch mesh.
@@ -1360,9 +1522,27 @@ bool stretchMeshCmd::addKeyPose()
 
 	MPlug keyPoseWeightsPlug;
 	keyPoseWeightsPlug = deformerFnDepNode.findPlug("keyPoseWeights");
-	keyPoseWeightsPlug.elementByLogicalIndex(numKeyPoses);
+
+	// grow the keyposeweights array by two, to account for left and right splits
+	int leftKeyPose;
+	int rightKeyPose;
+	if ((numKeyPoses-1) == 0) {
+		leftKeyPose = 0;
+		rightKeyPose = 1;
+	} else if (numKeyPoses-1 <= 2) {
+		leftKeyPose = (numKeyPoses-1) + 1;
+		rightKeyPose = (numKeyPoses-1) + 2;
+	} else {
+		leftKeyPose = 2 * (numKeyPoses-1);
+		rightKeyPose = 2 * (numKeyPoses-1) + 1;
+	}
+	keyPoseWeightsPlug.elementByLogicalIndex(leftKeyPose);
+	keyPoseWeightsPlug.setValue(0.0);
+	keyPoseWeightsPlug.elementByLogicalIndex(rightKeyPose);
 	keyPoseWeightsPlug.setValue(0.0);
 
+	bool init = initializePose(keyPosePath, numKeyPoses);
+	return init;
 }
 
 bool stretchMeshCmd::addAttractor()
@@ -2073,6 +2253,8 @@ MStatus stretchMeshCmd::buildstretchMeshCmdMenu()
 	buildMenuCmd += "		}\n";
 	buildMenuCmd += "}\n";
 	
+
+
 	// add key pose
 	buildMenuCmd += "global proc addstretchMeshKeyPose(){\n";
 	buildMenuCmd += "	string $sel[];\n";
@@ -2104,11 +2286,13 @@ MStatus stretchMeshCmd::buildstretchMeshCmdMenu()
 	buildMenuCmd += "		}\n";
 	buildMenuCmd += "	}\n";
 
+	buildMenuCmd += "	stretchMesh -edit -addKeyPose $shape $stretchMesh;\n";
 	buildMenuCmd += "	int $numKeyPoses = `getAttr ($stretchMesh + \".numKeyPoses\")`;\n";
 	buildMenuCmd += "	print $numKeyPoses;\n";
-
-	buildMenuCmd += "	stretchMesh -edit -addKeyPose $shape $stretchMesh;\n";
-	buildMenuCmd += "	setAttr(($stretchMesh + \".keyPoseWeights[\" + $numKeyPoses + \"]\"), 1.0);\n";
+	buildMenuCmd += "	int $leftIndex = smLeftKeyPoseWeightIndex($numKeyPoses);\n";
+	buildMenuCmd += "	setAttr(($stretchMesh + \".keyPoseWeights[\" + $leftIndex + \"]\"), 1.0);\n";
+	buildMenuCmd += "	int $rightIndex = smRightKeyPoseWeightIndex($numKeyPoses);\n";
+	buildMenuCmd += "	setAttr(($stretchMesh + \".keyPoseWeights[\" + $rightIndex + \"]\"), 1.0);\n";
 
 	buildMenuCmd += "	print $numKeyPoses;\n";
 
@@ -2356,6 +2540,31 @@ MStatus stretchMeshCmd::buildstretchMeshCmdMenu()
 
 	buildMenuCmd += "		return $selectionCenter;\n";
 	buildMenuCmd += "	}\n";
+
+	buildMenuCmd += "	global proc int smLeftKeyPoseWeightIndex(int $kpnum) {\n";
+	buildMenuCmd += "		int $val = -1;\n";
+	buildMenuCmd += "		if (($kpnum - 1) <= 2)\n";
+	buildMenuCmd += "			if (($kpnum - 1) == 0)\n";
+	buildMenuCmd += "				$val = 0;\n";
+	buildMenuCmd += "			else\n";
+	buildMenuCmd += "				$val = ($kpnum - 1) + 1;\n";
+	buildMenuCmd += "		else\n";
+	buildMenuCmd += "			$val = 2 * ($kpnum - 1);\n";
+	buildMenuCmd += "		return $val;\n";
+	buildMenuCmd += "	};\n";
+
+	buildMenuCmd += "	global proc int smRightKeyPoseWeightIndex(int $kpnum) {\n";
+	buildMenuCmd += "		int $val = -1;\n";
+	buildMenuCmd += "		if (($kpnum - 1) <= 2)\n";
+	buildMenuCmd += "			if (($kpnum - 1) == 0)\n";
+	buildMenuCmd += "				$val = 1;\n";
+	buildMenuCmd += "			else\n";
+	buildMenuCmd += "				$val = ($kpnum - 1) + 2;\n";
+	buildMenuCmd += "		else\n";
+	buildMenuCmd += "			$val = 2 * ($kpnum - 1) + 1;\n";
+	buildMenuCmd += "		return $val;\n";
+	buildMenuCmd += "	};\n";
+
 
 //
 // Same as artAttrSkinToolScript() but for StretchMesh nodes
