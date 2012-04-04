@@ -264,10 +264,10 @@ MStatus stretchMeshDeformer::initialize()
 	addAttribute( connVrtIdList );
 
 	connVrtIdListList = cmpAttr.create("connVrtIdListList", "cvidll");
-	//cmpAttr.addChild(connVrtIdList);
+	cmpAttr.addChild(connVrtIdList);
 	cmpAttr.setHidden(true);
 	cmpAttr.setArray(true);
-	cmpAttr.setStorable(true);
+	cmpAttr.setUsesArrayDataBuilder(true);
 	addAttribute(connVrtIdListList);
 
 	connVrtIdNrmlOrder=nAttr.create( "connVrtIdNrmlOrder", "cvidN", MFnNumericData::kInt );
@@ -683,6 +683,11 @@ stretchMeshDeformer::deform( MDataBlock& block,
 	}
 	
 
+	MDataHandle numKeyPosesData = block.inputValue(numKeyPoses, &stat);
+	int num_key_poses = numKeyPosesData.asInt();
+	cerr << endl << "numkeyposes::";
+	cerr << endl << num_key_poses;
+
 	MArrayDataHandle weightListHndl = block.inputArrayValue(meanWeightsList, &stat);
 	if(!stat){stat.perror("weights array handle construction failed\n");}
 
@@ -691,6 +696,15 @@ stretchMeshDeformer::deform( MDataBlock& block,
 
 	MArrayDataHandle connVrtListHndl = block.inputArrayValue(connVrtIdList, &stat);
 	if(!stat){stat.perror("connVrtIdList array handle construction failed\n");}
+	
+	/*
+	status = connVrtListListHndl.jumpToArrayElement(0);
+	cerr << endl << "this is where i am dog";
+	cerr << endl << connVrtListListHndl.elementCount();
+	cerr << endl << connVrtListListHndl.elementIndex();
+	cerr << endl << status;
+	MArrayDataHandle connVrtListHndl = connVrtListListHndl.inputValue(&status).child(connVrtIdList);
+	*/
 
 	MArrayDataHandle connVrtNrmlOrderListHndl = block.inputArrayValue(connVrtIdNrmlOrderList, &stat);
 	if(!stat){stat.perror("connVrtIdList array handle construction failed\n");}
@@ -1094,9 +1108,10 @@ stretchMeshDeformer::deform( MDataBlock& block,
 	vector<smCrvAttractorUV> crvAttractorUVArray;
 	crvAttractorUVArray.clear();
 	smCrvAttractorUV currCrvAttractorUV;
-	
+
 	for (iter.reset(); !iter.isDone(); iter.next()) {
 		int curr_vrt_index = iter.index();
+
 		pt = iter.position(MSpace::kObject);
 		pt *= inMatrix; //Put point in world space
 		inputPts[iter.index()] = pt;
