@@ -641,13 +641,16 @@ MStatus stretchMeshCmd::redoIt()
 				connVrtIdNrmlOrderPlug = connVrtIdNrmlOrderPlug.child(0);
 				connVrtIdNrmlOrderPlug.setNumElements(connVerts.length());
 				for(int j = 0; j < connVerts.length(); j++ ){
-					// We have to store connected vertices in two ways (for backward compatibility), 
+					// We have to store connected vertices in two ways (for backward compatibility),
 					// one in an order consistent with the way the normal is calculated, and one in
-					// a way that is consistent with the way the polar angles are stored. Polar 
+					// a way that is consistent with the way the polar angles are stored. Polar
 					// angle order here:
+					/*
 					connVrtIdPlugArray = deformerFnDepNode.findPlug("connVrtIdListList");
 					connVrtIdPlugArray = connVrtIdPlugArray.elementByLogicalIndex(0);
 					connVrtIdPlugArray = connVrtIdPlugArray.child(0);
+					*/
+					connVrtIdPlugArray = deformerFnDepNode.findPlug("connVrtIdList");
 					connVrtIdPlugArray = connVrtIdPlugArray.elementByLogicalIndex(vertId);
 					connVrtIdPlugArray = connVrtIdPlugArray.child(0);
 					connVrtIdPlugArray = connVrtIdPlugArray.elementByLogicalIndex(j);
@@ -1340,10 +1343,11 @@ bool stretchMeshCmd::initializePose(MDagPath keyPosePath, int poseIndex)
 	MPoint currVrtPt, connVrtPt;
 	MVector currVrtPos, connVrtPos, currVrtProj, connVrtProj;
 
+	MDoubleArray mvWeights;
 	MIntArray connVerts;
 	int prevIndex;
 
-	MPlug connVrtIdPlug;
+	MPlug connVrtIdPlug, deformerPlug;
 	connVrtIdPlug = deformerFnDepNode.findPlug("connVrtIdListList");
 	connVrtIdPlug = connVrtIdPlug.elementByLogicalIndex(poseIndex);
 	connVrtIdPlug = connVrtIdPlug.child(0);
@@ -1382,12 +1386,10 @@ bool stretchMeshCmd::initializePose(MDagPath keyPosePath, int poseIndex)
 		pyramidCoordsIter.getConnectedVertices(connVerts);
 
 		nrml = getCurrNormal(inputPts, connVerts);
-		cerr << endl << "normal::";
-		cerr << endl << nrml;
 
 		double d = 0.0;
 
-		// for each conn vert, determin d
+		// for each conn vert, determine d
 		currVrtPt = inputPts[vertId];
 		currVrtPos.x = currVrtPt.x;
 		currVrtPos.y = currVrtPt.y;
@@ -1475,11 +1477,77 @@ bool stretchMeshCmd::initializePose(MDagPath keyPosePath, int poseIndex)
 		connVrtIdPlug = connVrtIdPlug.child(0);
 		connVrtIdPlug.setNumElements(connVerts.length());
 		for (int i = 0; i < connVerts.length(); i++) {
-			connVrtIdPlug = connVrtIdPlug.elementByLogicalIndex(i);
-			connVrtIdPlug.setValue(polarCoordsArray[i].vertID);
+
+			deformerPlug = deformerFnDepNode.findPlug("connVertIdListList");
+			//setHierarchicalValue(deformerPlug, vertId, i, polarCoordsArray[i].vertID);
+			//setHierarchicalValue(deformerPlug, poseIndex, vertId, i, polarCoordsArray[i].vertID);
+			deformerPlug = getHierarchicalPlug(deformerPlug, poseIndex, vertId, i);
+			deformerPlug.setValue(polarCoordsArray[i].vertID);
+
+			//connVrtIdPlug = connVrtIdPlug.elementByLogicalIndex(i);
+			//connVrtIdPlug.setValue(polarCoordsArray[i].vertID);
+		}
+
+		// determine the mean value weights
+		//
+		mvWeights.clear();
+		double alpha1, alpha2;
+		double weightSum = 0.0;
+		double mvWeight = 0.0;
+		for (int i=0; i < connVerts.length(); i++) {
+			alpha1 = polarCoordsArray[i].wedgeAngle;
+			alpha2 = polarCoordsArray[(i+1) % connVerts.length()].wedgeAngle;
+			
+			mvWeight = (tan(alpha1/2) + tan(alpha2/2)) / polarCoordsArray[i].polarDistance;
+			weightSum = weightSum + mvWeight;
+			mvWeights.append(mvWeight);
+		}
+
+		int weightItr = 0;
+		for (int i=0; i < mvWeights.length(); i++) {
+			mvWeights[i] = mvWeights[i] / weightSum;
+
+			deformerPlug = deformerFnDepNode.findPlug("meanWeightsListList");
+			deformerPlug = getHierarchicalPlug(deformerPlug, poseIndex, vertId, i);
+			deformerPlug.setValue(mvWeights[i]);
+			weightItr = weightItr + 1;
+		}
+
+
+		// determine normal component of the pyramid coords -- the 'b' term
+		//
+		MVector vec = currVrtPos - currVrtProj;
+		double b = vec.length();
+		if (vec * nrml < 0) {
+			b = -b;
+		}
+
+		for (int i=0; i < polarCoordsArray.size(); i++) {
+			connVrtPt = inputPts[polarCoordsArray[i].vertID];
+			MVector connPtToCurrPt;
+			connPtToCurrPt = (currVrtPos - connVrtPt);
+
+			double cos = (connPtToCurrPt * nrml) / connPtToCurrPt.length();
+			double bScales = (cos) / (sqrt(1 - (cos*cos)));
+
+			deformerPlug = deformerFnDepNode.findPlug("bScalableListList");
+			deformerPlug = getHierarchicalPlug(deformerPlug, poseIndex, vertId, i);
+			deformerPlug.setValue(bScales);
 		}
 	}
 	return true;
+}
+
+MPlug stretchMeshCmd::getHierarchicalPlug(MPlug topPlug, int poseIndex, int vertId, int i)
+{
+	// puts data into the *ListList style attributes
+	topPlug = topPlug.elementByLogicalIndex(poseIndex);
+	topPlug = topPlug.child(0);
+	topPlug = topPlug.elementByLogicalIndex(vertId);
+	topPlug = topPlug.child(0);
+	topPlug = topPlug.elementByLogicalIndex(i);
+	cerr << endl << "foobar2";
+	return topPlug;
 }
 
 bool stretchMeshCmd::addKeyPose()

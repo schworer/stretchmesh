@@ -133,6 +133,7 @@ private:
 	bool addCurveAttractor();
 	bool addKeyPose();
 	bool initializePose(MDagPath keyPosePath, int poseIndex);
+	MPlug getHierarchicalPlug(MPlug topPlug, int poseIndex, int vertId, int i);
 };
 
 #endif

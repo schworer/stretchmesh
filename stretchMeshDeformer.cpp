@@ -241,10 +241,10 @@ MStatus stretchMeshDeformer::initialize()
 	addAttribute( meanWeightsList );
 
 	meanWeightsListList = cmpAttr.create( "meanWeightsListList", "mwll" );
-	cmpAttr.addChild(meanWeights);
+	//cmpAttr.addChild(meanWeightsList);
 	cmpAttr.setHidden(true);
 	cmpAttr.setArray(true);
-	//cmpAttr.setUsesArrayDataBuilder(true);
+	cmpAttr.setUsesArrayDataBuilder(true);
 	addAttribute( meanWeightsListList );
 
 	connVrtId=nAttr.create( "connVrtId", "cvid", MFnNumericData::kInt );
@@ -264,7 +264,7 @@ MStatus stretchMeshDeformer::initialize()
 	addAttribute( connVrtIdList );
 
 	connVrtIdListList = cmpAttr.create("connVrtIdListList", "cvidll");
-	cmpAttr.addChild(connVrtIdList);
+	//cmpAttr.addChild(connVrtIdList);
 	cmpAttr.setHidden(true);
 	cmpAttr.setArray(true);
 	cmpAttr.setUsesArrayDataBuilder(true);
@@ -292,8 +292,7 @@ MStatus stretchMeshDeformer::initialize()
 	//cmpAttr.addChild(connVrtIdNrmlOrderList);
 	cmpAttr.setHidden(true);
 	cmpAttr.setArray(true);
-	//cmpAttr.setUsesArrayDataBuilder(true);
-	cmpAttr.setStorable(true);
+	cmpAttr.setUsesArrayDataBuilder(true);
 	addAttribute( connVrtIdNrmlOrderListList );
 
 	b = nAttr.create( "b", "b", MFnNumericData::kDouble );
@@ -418,7 +417,7 @@ MStatus stretchMeshDeformer::initialize()
 	cmpAttr.setUsesArrayDataBuilder(true);
 	addAttribute( crvAttractorAttachUVList );
 	// End curve attractors
-	
+
 	// Make sure the <kDoubleArray> attribute has a default value. Behaves weird otherwise.
 	MDoubleArray defaultDoubleArray;
 	MFnDoubleArrayData defaultDoubleArrayData;
@@ -694,9 +693,23 @@ stretchMeshDeformer::deform( MDataBlock& block,
 	MArrayDataHandle weightListListHndl = block.inputArrayValue(meanWeightsListList, &stat);
 	if(!stat){stat.perror("weights list array handle construction failed\n");}
 
+	/*
+	MArrayDataHandle connVrtListListHndl = block.inputArrayValue(connVrtIdListList, &stat);
+	if(!stat){stat.perror("connVrtIdListList array handle construction failed\n");}
+	status = connVrtListListHndl.jumpToElement(0);
+	*/
+
 	MArrayDataHandle connVrtListHndl = block.inputArrayValue(connVrtIdList, &stat);
 	if(!stat){stat.perror("connVrtIdList array handle construction failed\n");}
-	
+	/*
+	// Now from this compound, get the aWts weights array child...
+	MArrayDataHandle hWtListChild = connVrtListHndl.child( connVrtIdList );
+	*/
+
+	/*
+	MArrayDataHandle connVrtListHndl = connVrtListListHndl.inputValue(&status).child(connVrtIdList);
+	if(!status){stat.perror("connVrtIdList array handle construction failed\n");}
+	*/
 	/*
 	status = connVrtListListHndl.jumpToArrayElement(0);
 	cerr << endl << "this is where i am dog";
@@ -704,6 +717,8 @@ stretchMeshDeformer::deform( MDataBlock& block,
 	cerr << endl << connVrtListListHndl.elementIndex();
 	cerr << endl << status;
 	MArrayDataHandle connVrtListHndl = connVrtListListHndl.inputValue(&status).child(connVrtIdList);
+	status = connVrtListListHndl.jumpToArrayElement( targetIndex );
+				MArrayDataHandle connVrtListHndl = connVrtListListHndl.inputValue(&status).child(connVrtIdList);
 	*/
 
 	MArrayDataHandle connVrtNrmlOrderListHndl = block.inputArrayValue(connVrtIdNrmlOrderList, &stat);
@@ -1105,6 +1120,7 @@ stretchMeshDeformer::deform( MDataBlock& block,
 	crvAttractorUVArray.clear();
 	smCrvAttractorUV currCrvAttractorUV;
 
+	cerr << "this is some stuff here" << endl;
 	for (iter.reset(); !iter.isDone(); iter.next()) {
 		int curr_vrt_index = iter.index();
 
@@ -1129,7 +1145,7 @@ stretchMeshDeformer::deform( MDataBlock& block,
 		
 		currVert.connectedVerts.clear();
 		status = connVrtListHndl.jumpToArrayElement(curr_vrt_index);
-		McheckErr(status, "Jump to array element failed\n");
+		McheckErr(status, "Jump to connvrtlisthndl array element failed\n");
 		MArrayDataHandle connVrtHndl = connVrtListHndl.inputValue(&status).child(connVrtId);
 		num_conn_vrts = connVrtHndl.elementCount();
 		for(int i = 0; i < num_conn_vrts; i++){
@@ -1141,7 +1157,7 @@ stretchMeshDeformer::deform( MDataBlock& block,
 		if(stretchMeshVers >= SM_POLAR_FIX){
 			currVertNrmlOrder.connectedVerts.clear();
 			status = connVrtNrmlOrderListHndl.jumpToArrayElement(curr_vrt_index);
-			McheckErr(status, "Jump to array element failed\n");
+			McheckErr(status, "Jump to connVrtNrmlOrderListHndl array element failed\n");
 			MArrayDataHandle connVrtNrmOrderHndl = connVrtNrmlOrderListHndl.inputValue(&status).child(connVrtIdNrmlOrder);
 			num_conn_vrts = connVrtNrmOrderHndl.elementCount();
 			for(int i = 0; i < num_conn_vrts; i++){
