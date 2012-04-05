@@ -848,7 +848,6 @@ stretchMeshDeformer::deform( MDataBlock& block,
 	MVector rayDirVec;
 	MFloatVector rayDir;
 	MMeshIsectAccelParams intersectAccel;
-	MVector conn_pt_t[MAX_NUM_CONN_VRTS];
 	MVectorArray vrt_snapshot;
 	MVector currVertSnapshot;
 	MVector curr_pt_t;
@@ -860,9 +859,6 @@ stretchMeshDeformer::deform( MDataBlock& block,
 	unsigned int num_conn_vrts;
 	MPointArray verts;
 	MPlug crvColliderRadiusListPlug(thisNode, crvColliderRadiusList);
-	
-	int conn_vrt_id;
-	int prev_vrt_id;
 
 	MPointArray inputPts;  // The point array that represents the initial position of the points.  It is used to interpolate
 					    // with the resultPts array depending on env/weight values.
