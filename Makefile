@@ -1,14 +1,14 @@
 ## Makefile cribbed from the Bullet Physics makefile found here:
 ## http://bulletphysics.org/Bullet/phpBB3/viewtopic.php?t=7783
 
-MAYA_LOCATION=/Applications/Autodesk/maya2012/devkit
+MAYA_LOCATION=/Applications/Autodesk/maya$(MAYA_VERSION)/devkit
 
 ## MAYA_LOCATION is the Maya installation directory. It should be already defined in your
 # environment variables. If not, please change it to the appropriate directory
 MAYA=$(MAYA_LOCATION)
 
 ## Change this if you want to change the name of the final plugin 
-LIBRARY=stretchMesh2012.bundle
+LIBRARY=stretchMesh$(MAYA_VERSION).bundle
 
 ##################################
 
@@ -27,7 +27,7 @@ LDFLAGS = -ldl -shared
 GL_LIB=-framework OpenGL
 
 MAYA_INCLUDE=-I$(MAYA)/include
-MAYA_LIB=-L/Applications/Autodesk/maya2012/Maya.app/Contents/MacOS -lOpenMaya -lFoundation -Wl,-executable_path,/Applications/Autodesk/maya2012/Maya.app/Contents/MacOS -lOpenMayaUI -lOpenMaya -lOpenMayaRender -lOpenMayaAnim -lFoundation
+MAYA_LIB=-L/Applications/Autodesk/maya$(MAYA_VERSION)/Maya.app/Contents/MacOS -lOpenMaya -lFoundation -Wl,-executable_path,/Applications/Autodesk/maya$(MAYA_VERSION)/Maya.app/Contents/MacOS -lOpenMayaUI -lOpenMaya -lOpenMayaRender -lOpenMayaAnim -lFoundation
 
 SOURCES = curveColliderLocator.cpp stretchMeshCmd.cpp pluginMain.cpp stretchMeshDeformer.cpp
 
